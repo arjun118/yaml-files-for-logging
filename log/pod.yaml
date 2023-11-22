@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-logger
+spec:
+  containers:
+  - name: simple-logger
+    image: docker.io/vishnuteja3301/logger:v1
