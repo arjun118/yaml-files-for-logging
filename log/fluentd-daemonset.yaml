@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluentd
-  namespace: kube-system
+  namespace: logging
   labels:
     k8s-app: fluentd-logging
     version: v1
@@ -17,6 +17,8 @@ spec:
         k8s-app: fluentd-logging
         version: v1
     spec:
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
       tolerations:
       - key: node-role.kubernetes.io/control-plane
         effect: NoSchedule
@@ -36,6 +38,9 @@ spec:
             value: "0"
           - name: FLUENTD_SYSTEM_CONF
             value: "disable"
+            # this changes the default location of fluentd  configuration file
+          - name: FLUENTD_CONF
+            value: "custom-config/fluentd.conf"
         resources:
           limits:
             memory: 200Mi
@@ -49,7 +54,8 @@ spec:
         - name: varlibdockercontainers
           mountPath: /var/lib/docker/containers
           readOnly: true
-        # When actual pod logs in /var/log/pods, the following lines should be used.
+        - name: fluentd-config-volume
+          mountPath: /fluentd/etc/custom-config
       terminationGracePeriodSeconds: 30
       volumes:
       - name: varlog
@@ -59,5 +65,6 @@ spec:
       - name: varlibdockercontainers
         hostPath:
           path: /var/lib/docker/containers
-      # When actual pod logs in /var/log/pods, the following lines should be used.
-
+      - name: fluentd-config-volume
+        configMap: 
+          name: fluentd-configmap
